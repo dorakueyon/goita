@@ -13,9 +13,9 @@ import (
 )
 
 type entry struct {
-	Title     string `json:"title"`
-	URL       string `json:"url"`
-	LikeCount string `json:"like_count"`
+	Title     string
+	URL       string
+	LikeCount string
 }
 
 type QueryResult struct {

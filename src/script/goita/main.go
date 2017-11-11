@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/codegangsta/cli"
 	"github.com/fatih/color"
 	"github.com/mattn/go-runewidth"
-	"log"
+	"github.com/urfave/cli"
 	"os"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -27,6 +27,8 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "goita"
 	app.Usage = "Command Line Client for Qiita ranking"
+	app.Version = "0.0.1"
+	app.ArgsUsage = "[tag]"
 	app.HideHelp = true
 	app.Flags = []cli.Flag{
 		cli.IntFlag{
@@ -34,21 +36,45 @@ func main() {
 			Value: 10,
 			Usage: "number of output lines",
 		},
+		cli.IntFlag{
+			Name:  "days, d",
+			Value: 1,
+			Usage: "number of report days",
+		},
+		cli.BoolFlag{
+			Name:  "hatebu, hatena",
+			Usage: "ranking sorted by hatebu bookmark number",
+		},
 	}
-	app.Action = func(c *cli.Context) {
+	app.Action = func(c *cli.Context) error {
+		tag := c.Args().First()
 		number := c.Int("number")
-		url := buildUrl()
+		days := c.Int("days")
+		ishatebu := c.Bool("hatebu")
+		url := buildUrl(tag, days, ishatebu)
 		result, err := crawl(url, number)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		showResult(result, url)
+		return nil
 	}
 	app.Run(os.Args)
 }
 
-func buildUrl() string {
-	return fmt.Sprintf("http://qrank.wbsrv.net/entries?days=1&orderby=like_count")
+func buildUrl(tag string, days int, ishatebu bool) string {
+	var tag_parameter, order string
+
+	if tag != "" {
+		tag_parameter = "&tag=" + tag
+	}
+	if ishatebu {
+		order = "&orderby=hatebu_count"
+	} else {
+		order = "&orderby=like_count"
+	}
+	d := strconv.Itoa(days)
+	return fmt.Sprintf("http://qrank.wbsrv.net/entries?days=%s%s%s", d, tag_parameter, order)
 }
 
 func crawl(url string, number int) (QueryResult, error) {

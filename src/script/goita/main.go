@@ -87,11 +87,10 @@ func crawl(url string, number int) (QueryResult, error) {
 		}, err
 	}
 	doc.Find("tr").Each(func(_ int, line *goquery.Selection) {
-		cells := [3]interface{}{"", "", 0}
+		cells := [3]interface{}{"", "", ""}
 		cells[0] = line.Find("a").Text()
 		cells[1], _ = line.Find("a").Attr("href")
 		cells[2] = line.Find("td").Eq(2).Text()
-		fmt.Println(err)
 		entry := entry{
 			Title:     strings.TrimSpace(cells[0].(string)),
 			URL:       cells[1].(string),
